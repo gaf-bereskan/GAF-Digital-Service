@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GA Digital Service - General Affairs Service Portal</title>
+    <meta name="theme-color" content="#0f5257">
+    <meta name="description" content="General Affairs Service Portal - Enterprise PWA with Administrator Protection">
+    
+    <!-- PWA Icons & Favicon -->
+    <link rel="icon" type="image/png" href="https://img.icons8.com/color/96/organization.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/organization.png">
+    
+    <!-- External Libraries (Tailwind, Lucide, Chart.js, SheetJS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f5257',
+                            teal: '#146268',
+                            accent: '#0e7090',
+                            lightBg: '#f4f8f9'
+                        },
+                        cardMaint: '#eef7ff',
+                        cardClean: '#eefbf4',
+                        cardWaste: '#fef9ee'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        script: ['Caveat', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass-banner {
+            background: linear-gradient(135deg, rgba(255,255,255,0.94) 0%, rgba(238,247,255,0.88) 100%), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-teal-600 selection:text-white">
+
+    <header class="bg-brand-dark text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('user-portal')">
+                <div class="p-2 bg-teal-800/60 rounded-xl border border-teal-600/40 shadow-xs">
+                    <i data-lucide="building-2" class="w-6 h-6 text-teal-200"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight tracking-wide">GA Digital Service</h1>
+                    <p class="text-[11px] text-teal-200 font-normal hidden sm:block">General Affairs Service Portal</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 sm:space-x-5">
+                <button class="relative p-2 rounded-full hover:bg-teal-800/50 transition" title="Notifikasi System">
+                    <i data-lucide="bell" class="w-5 h-5 text-teal-100"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full animate-ping"></span>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full"></span>
+                </button>
+
+                <div class="h-6 w-px bg-teal-700/80"></div>
+                
+                <!-- View Switcher Toggle Button -->
+                <div class="flex items-center bg-teal-950/40 p-1 rounded-full border border-teal-700/60">
+                    <button id="btn-portal-view" onclick="switchTab('user-portal')" class="flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500 text-white shadow-sm transition-all">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Portal</span> Karyawan
+                    </button>
+                    <button id="btn-admin-view" onclick="requestAdministratorAccess()" class="flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold text-teal-200 hover:text-white transition-all">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                        <span>Administrator</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        
+        <!-- ================= USER PORTAL SECTION ================= -->
+        <section id="user-portal" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            
+            <!-- Hero Banner -->
+            <div class="glass-banner rounded-2xl p-6 md:p-8 border border-white/60 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="space-y-2 max-w-2xl relative z-10">
+                    <div class="flex items-start gap-3">
+                        <div class="w-1.5 h-12 bg-teal-600 rounded-full mt-1 shrink-0"></div>
+                        <div>
+                            <p class="text-xs sm:text-sm font-bold text-teal-800 tracking-wide uppercase">Selamat datang di</p>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">GA Digital Service</h2>
+                            <p class="text-slate-600 mt-1 text-sm sm:text-base leading-relaxed">
+                                Kami siap membantu kebutuhan fasilitas kantor Anda.<br class="hidden sm:inline">
+                                Pilih layanan yang Anda butuhkan di bawah ini.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="self-end md:self-center relative z-10 text-right pr-2">
+                    <span class="font-script text-3xl sm:text-4xl text-teal-700 tracking-wide font-bold -rotate-3 block transform hover:scale-105 transition duration-300">
+                        Together for a Better Workspace
+                    </span>
+                </div>
+            </div>
+
+            <!-- Service Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Card 1: Maintenance -->
+                <div onclick="openServiceModal('maintenance')" class="bg-cardMaint rounded-2xl p-6 border border-blue-100 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                        <div class="w-full h-36 bg-blue-50/70 rounded-xl mb-4 flex items-center justify-center relative border border-blue-100/50">
+                            <div class="relative flex items-center justify-center">
+                                <i data-lucide="air-vent" class="w-20 h-20 text-slate-300 opacity-80"></i>
+                                <i data-lucide="wrench" class="w-12 h-12 text-sky-600 absolute -bottom-1 -right-2 transform group-hover:rotate-12 transition-transform duration-300"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 group-hover:text-sky-700 transition">Maintenance</h3>
+                        <p class="text-slate-600 text-sm mt-1">Laporkan kerusakan fasilitas dan peralatan kantor.</p>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <div class="w-10 h-10 rounded-full bg-cyan-700 text-white flex items-center justify-center group-hover:bg-cyan-800 transition shadow-sm">
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: E-Cleaning -->
+                <div onclick="openServiceModal('cleaning')" class="bg-cardClean rounded-2xl p-6 border border-emerald-100 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                        <div class="w-full h-36 bg-emerald-50/70 rounded-xl mb-4 flex items-center justify-center relative border border-emerald-100/50">
+                            <div class="relative flex items-center justify-center">
+                                <i data-lucide="sparkles" class="w-8 h-8 text-amber-400 absolute -top-1 -right-2"></i>
+                                <i data-lucide="spray-can" class="w-16 h-16 text-emerald-600 group-hover:scale-110 transition-transform duration-300"></i>
+                                <i data-lucide="brush" class="w-10 h-10 text-emerald-500 absolute -bottom-1 -left-3"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 group-hover:text-emerald-700 transition">E-Cleaning</h3>
+                        <p class="text-slate-600 text-sm mt-1">Ajukan permintaan pembersihan area kantor.</p>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center group-hover:bg-emerald-700 transition shadow-sm">
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Industrial Waste -->
+                <div onclick="openServiceModal('waste')" class="bg-cardWaste rounded-2xl p-6 border border-amber-100 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                        <div class="w-full h-36 bg-amber-50/70 rounded-xl mb-4 flex items-center justify-center relative border border-amber-100/50">
+                            <div class="relative flex items-center justify-center space-x-2">
+                                <i data-lucide="trash-2" class="w-16 h-16 text-amber-600 group-hover:rotate-6 transition-transform duration-300"></i>
+                                <i data-lucide="biohazard" class="w-10 h-10 text-amber-700"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 group-hover:text-amber-700 transition">Industrial Waste</h3>
+                        <p class="text-slate-600 text-sm mt-1">Laporkan pembuangan sampah non-domestik.</p>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center group-hover:bg-amber-600 transition shadow-sm">
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer PIC Contacts Bar -->
+            <div class="bg-sky-50/80 rounded-2xl p-5 border border-sky-100 shadow-xs space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-sky-100 text-sky-800 rounded-full">
+                        <i data-lucide="headphones" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm sm:text-base">Jika membutuhkan bantuan, silakan hubungi PIC kami:</h4>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                    <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-sky-100 shadow-2xs">
+                        <div class="p-2 bg-brand-teal text-white rounded-lg shrink-0">
+                            <i data-lucide="phone-call" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-bold text-slate-700">PIC SMU 1</p>
+                            <a href="tel:083812505114" class="text-cyan-800 font-semibold hover:underline">0838-1250-5114 (ANDYS)</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-sky-100 shadow-2xs">
+                        <div class="p-2 bg-brand-teal text-white rounded-lg shrink-0">
+                            <i data-lucide="phone-call" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-bold text-slate-700">PIC SMU 2 (HEAD OFFICE)</p>
+                            <a href="tel:08179060821" class="text-cyan-800 font-semibold hover:underline">0817-9060-821 (WELY)</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-sky-100 shadow-2xs">
+                        <div class="p-2 bg-brand-teal text-white rounded-lg shrink-0">
+                            <i data-lucide="phone-call" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-bold text-slate-700">PIC SMU 2 (MANUFACTUR) & SMU 3</p>
+                            <a href="tel:08176327325" class="text-cyan-800 font-semibold hover:underline">0817-6327-325 (HERU)</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-sky-100 shadow-2xs">
+                        <div class="p-2 bg-brand-teal text-white rounded-lg shrink-0">
+                            <i data-lucide="phone-call" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-bold text-slate-700">PIC PERMATA KUNINGAN & WISMA GAWI</p>
+                            <a href="tel:085886237524" class="text-cyan-800 font-semibold hover:underline">0858-8623-7524 (ANDRIAN)</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ================= ADMINISTRATOR DASHBOARD SECTION ================= -->
+        <section id="admin-portal" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 hidden">
+            
+            <!-- Dashboard Toolbar Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold text-[10px] uppercase tracking-wider">Terautentikasi</span>
+                        <h2 class="text-2xl font-bold text-slate-900">Dashboard Administrator</h2>
+                    </div>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Pantau, kelola JO/Notification, SLA, PIC Teknisi, dan analisis respon data karyawan berkinerja tinggi.</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Bulk Data Generator Button -->
+                    <button onclick="triggerBulkDataModal()" class="flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl font-medium text-xs transition shadow-xs" title="Generate dummy data massal">
+                        <i data-lucide="database-zap" class="w-4 h-4"></i>
+                        <span>Generate Data Massal</span>
+                    </button>
+
+                    <!-- Export Excel -->
+                    <button onclick="exportToExcel()" class="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl font-medium text-xs transition shadow-xs">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        <span>Ekspor Excel</span>
+                    </button>
+
+                    <!-- Backup / Archiving -->
+                    <button onclick="openBackupModal()" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl font-medium text-xs transition shadow-xs">
+                        <i data-lucide="hard-drive" class="w-4 h-4"></i>
+                        <span>Backup / Purge</span>
+                    </button>
+
+                    <!-- Logout Button -->
+                    <button onclick="logoutAdministrator()" class="flex items-center space-x-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-2 rounded-xl font-semibold text-xs transition border border-rose-200" title="Keluar Administrator">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Keluar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Metric Cards Grid (With SLA Metric) -->
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Laporan</p>
+                        <h3 id="stat-total" class="text-2xl font-extrabold text-slate-800 mt-0.5">0</h3>
+                    </div>
+                    <div class="p-2.5 bg-teal-50 text-teal-700 rounded-xl">
+                        <i data-lucide="inbox" class="w-5 h-5"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Menunggu</p>
+                        <h3 id="stat-pending" class="text-2xl font-extrabold text-amber-600 mt-0.5">0</h3>
+                    </div>
+                    <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Diproses</p>
+                        <h3 id="stat-process" class="text-2xl font-extrabold text-sky-600 mt-0.5">0</h3>
+                    </div>
+                    <div class="p-3 bg-sky-50 text-sky-600 rounded-xl">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Selesai</p>
+                        <h3 id="stat-completed" class="text-2xl font-extrabold text-emerald-600 mt-0.5">0</h3>
+                    </div>
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Ditolak</p>
+                        <h3 id="stat-rejected" class="text-2xl font-extrabold text-rose-600 mt-0.5">0</h3>
+                    </div>
+                    <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                    </div>
+                </div>
+
+                <!-- Card SLA Rata-rata -->
+                <div class="bg-white p-4 rounded-xl border border-indigo-200 bg-indigo-50/30 shadow-2xs flex items-center justify-between col-span-2 md:col-span-1">
+                    <div>
+                        <p class="text-[11px] font-semibold text-indigo-900 uppercase tracking-wider">Rata-Rata SLA</p>
+                        <h3 id="stat-avg-sla" class="text-lg font-extrabold text-indigo-700 mt-0.5">-</h3>
+                    </div>
+                    <div class="p-2.5 bg-indigo-100 text-indigo-700 rounded-xl">
+                        <i data-lucide="timer" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Analytics Cards Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Trend Line Chart -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs lg:col-span-2 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 text-sm">Tren Volume Laporan Harian</h3>
+                        <span class="text-xs text-slate-400 font-normal">IndexedDB Live Sync</span>
+                    </div>
+                    <div class="h-60 relative">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Area SMU Doughnut Chart -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                    <h3 class="font-bold text-slate-800 text-sm">Distribusi per Area SMU</h3>
+                    <div class="h-60 relative">
+                        <canvas id="areaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table Section with Advanced Virtual Pagination -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                
+                <!-- Table Controls Header & Search Filters -->
+                <div class="p-5 border-b border-slate-100 space-y-4">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <h3 class="font-bold text-slate-800 text-base">Tabel Data Respon Masuk</h3>
+                        
+                        <div class="flex items-center space-x-2 text-xs text-slate-500">
+                            <span>Tampilkan:</span>
+                            <select id="table-page-size" onchange="changePageSize(this.value)" class="p-1.5 border rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                <option value="10">10 data</option>
+                                <option value="25" selected>25 data</option>
+                                <option value="50">50 data</option>
+                                <option value="100">100 data</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Filters Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                        <!-- Search Box -->
+                        <div class="relative">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5"></i>
+                            <input type="text" id="filter-search" oninput="debounceApplyFilters()" placeholder="Cari JO/Requestor/Teknisi/BA/Lokasi..." class="w-full text-xs pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        </div>
+
+                        <!-- Category Filter -->
+                        <select id="filter-category" onchange="applyFilters()" class="text-xs p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="ALL">Semua Layanan</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="E-Cleaning">E-Cleaning</option>
+                            <option value="Industrial Waste">Industrial Waste</option>
+                        </select>
+
+                        <!-- Area SMU Filter -->
+                        <select id="filter-area" onchange="applyFilters()" class="text-xs p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="ALL">Semua Area SMU</option>
+                            <option value="SMU 1">SMU 1</option>
+                            <option value="SMU 2 (Head Office)">SMU 2 (Head Office)</option>
+                            <option value="SMU 2 (Manufaktur/Plant)">SMU 2 (Manufaktur/Plant)</option>
+                            <option value="SMU 3">SMU 3</option>
+                            <option value="Permata Kuningan">Permata Kuningan</option>
+                            <option value="Gawi">Gawi</option>
+                        </select>
+
+                        <!-- Status Filter -->
+                        <select id="filter-status" onchange="applyFilters()" class="text-xs p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="ALL">Semua Status</option>
+                            <option value="Pending">Menunggu (Pending)</option>
+                            <option value="In Progress">Diproses</option>
+                            <option value="Completed">Selesai</option>
+                            <option value="Rejected">Ditolak</option>
+                        </select>
+
+                        <!-- Date Start & End Range Filter -->
+                        <div class="flex items-center space-x-1">
+                            <input type="date" id="filter-date-start" onchange="applyFilters()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" title="Tanggal Mulai">
+                            <span class="text-xs text-slate-400">-</span>
+                            <input type="date" id="filter-date-end" onchange="applyFilters()" class="w-full text-xs p-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" title="Tanggal Akhir">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto custom-scrollbar min-h-[300px]">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3.5">No / Waktu</th>
+                                <th class="p-3.5">No. JO / Notification</th>
+                                <th class="p-3.5">Layanan</th>
+                                <th class="p-3.5">Requestor</th>
+                                <th class="p-3.5">Departemen</th>
+                                <th class="p-3.5">Area SMU</th>
+                                <th class="p-3.5">PIC / Teknisi</th>
+                                <th class="p-3.5">Lokasi & BA</th>
+                                <th class="p-3.5">Status & SLA</th>
+                                <th class="p-3.5 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-100">
+                            <!-- Populated via IndexedDB & Virtual Pagination -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer Bar -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <div id="pagination-info" class="text-slate-500 font-medium">
+                        Menampilkan 0 dari 0 data
+                    </div>
+                    <div class="flex items-center space-x-1.5" id="pagination-buttons">
+                        <!-- Dynamic Buttons -->
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brand-dark text-teal-200/80 text-xs py-4 text-center border-t border-teal-800 mt-8">
+        <p>GA Digital Service &nbsp;|&nbsp; General Affairs & Facility Management &nbsp;|&nbsp; PT Sayap Mas Utama</p>
+    </footer>
+
+
+    <!-- ================= ADMINISTRATOR LOGIN MODAL ================= -->
+    <div id="admin-login-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100 relative">
+            <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-teal-100 text-teal-800 rounded-full flex items-center justify-center mx-auto">
+                    <i data-lucide="shield-lock" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">Akses Administrator</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Masukkan password keamanan untuk mengakses dashboard Administrator.</p>
+            </div>
+
+            <form onsubmit="handleAdministratorLogin(event)" class="space-y-3 pt-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Password Administrator *</label>
+                    <div class="relative">
+                        <input type="password" id="admin-password-input" required placeholder="Masukkan password..." class="w-full text-xs p-2.5 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-600 focus:outline-none">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="eye" id="password-eye-icon" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="admin-login-error" class="hidden p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center space-x-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-rose-600"></i>
+                    <span>Password salah! Silakan coba lagi.</span>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeAdminLoginModal()" class="w-1/2 py-2.5 border rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center justify-center space-x-1">
+                        <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+                        <span>Masuk</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= MODAL SERVICE FORM ================= -->
+    <div id="service-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden my-auto transform transition-all">
+            
+            <!-- Modal Header -->
+            <div id="modal-header" class="p-5 text-white flex items-center justify-between">
+                <div>
+                    <h3 id="modal-title" class="text-xl font-bold">Form Layanan</h3>
+                    <p id="modal-subtitle" class="text-xs opacity-90">Lengkapi seluruh data di bawah ini</p>
+                </div>
+                <button type="button" onclick="closeModal()" class="p-1.5 rounded-full hover:bg-black/20 text-white transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Dynamic Form -->
+            <form id="dynamic-form" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <input type="hidden" id="form-type" value="">
+
+                <div id="form-fields-container" class="space-y-4"></div>
+
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200/60 flex items-center space-x-2 text-amber-800 text-xs">
+                    <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-amber-600"></i>
+                    <span>Semua bidang pilihan wajib diisi lengkap untuk melanjutkan pengajuan.</span>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 font-medium text-xs transition">Batal</button>
+                    <button type="submit" id="btn-submit-form" class="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-md transition flex items-center space-x-2">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span>Kirim Permintaan</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- MODAL EDIT/INPUT JO, PIC TEKNISI & WAKTU PENYELESAIAN FOR ADMINISTRATOR -->
+    <div id="jo-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                    <i data-lucide="edit" class="w-5 h-5 text-indigo-600"></i>
+                    <span>Edit Manual Data Admin</span>
+                </h3>
+                <button onclick="closeJOModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form onsubmit="saveAdminManualEdits(event)" class="space-y-3">
+                <input type="hidden" id="jo-record-id" value="">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nomor JO / Notification</label>
+                    <input type="text" id="jo-input-val" placeholder="Contoh: JO-2026-001 / NOTIF-881" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">PIC / Teknisi Penanggung Jawab</label>
+                    <input type="text" id="pic-teknisi-input-val" placeholder="Nama PIC / Teknisi yang mengerjakan" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Waktu Penyelesaian (SLA Manual)</label>
+                    <input type="datetime-local" id="completion-time-input-val" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+                    <p class="text-[10px] text-slate-400 mt-1">*Kosongkan jika laporan belum selesai/masih berjalan.</p>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeJOModal()" class="px-4 py-2 border rounded-xl text-xs font-medium text-slate-600">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DETAIL VIEW MODAL FOR ADMINISTRATOR -->
+    <div id="detail-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-slate-800">Detail Submisi Laporan Karyawan</h3>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="detail-modal-content" class="text-xs space-y-3">
+                <!-- Filled via JS -->
+            </div>
+            <div class="pt-3 border-t flex justify-between items-center">
+                <button onclick="deleteSingleRecord()" class="text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 transition">Hapus Data Ini</button>
+                <button onclick="closeDetailModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-300 transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BULK DATA SEEDER MODAL -->
+    <div id="bulk-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                    <i data-lucide="database-zap" class="w-5 h-5 text-indigo-600"></i>
+                    <span>Generate Data Dummy Massal</span>
+                </h3>
+                <button onclick="closeBulkModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Fitur ini akan menyuntikkan ribuan data laporan acak beserta **Nomor JO** ke dalam **IndexedDB** lokal Anda untuk menguji performa tabel virtual, pagination, dan statistik analytics SLA.
+            </p>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Data yang Ingin Di-generate:</label>
+                <select id="bulk-count" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600">
+                    <option value="100">100 Data Laporan</option>
+                    <option value="500">500 Data Laporan</option>
+                    <option value="1000" selected>1,000 Data Laporan</option>
+                    <option value="5000">5,000 Data Laporan (High Load Test)</option>
+                </select>
+            </div>
+
+            <div class="pt-2 flex justify-end space-x-2">
+                <button onclick="closeBulkModal()" class="px-4 py-2 border rounded-xl text-xs font-medium text-slate-600">Batal</button>
+                <button onclick="processBulkGeneration()" id="btn-process-bulk" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    <span>Mulai Seeding</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKUP & ARCHIVING MODAL -->
+    <div id="backup-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                    <i data-lucide="hard-drive" class="w-5 h-5 text-slate-800"></i>
+                    <span>Manajemen Database & Purging</span>
+                </h3>
+                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-700 mb-1">1. Backup Database (JSON)</h4>
+                    <p class="text-slate-500 text-[11px] mb-2">Unduh cadangan seluruh data dari IndexedDB untuk disimpan secara terpisah.</p>
+                    <button onclick="exportJSONBackup()" class="w-full py-2 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-900 transition flex items-center justify-center space-x-2">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Download JSON Backup</span>
+                    </button>
+                </div>
+
+                <div class="p-3 bg-rose-50 rounded-xl border border-rose-200">
+                    <h4 class="font-bold text-rose-800 mb-1">2. Hapus & Purge Seluruh Data</h4>
+                    <p class="text-rose-600 text-[11px] mb-2">Tindakan ini akan mengosongkan IndexedDB lokal secara permanen.</p>
+                    <button onclick="purgeAllData()" class="w-full py-2 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition flex items-center justify-center space-x-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Reset/Purge Seluruh Database</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-2 text-right">
+                <button onclick="closeBackupModal()" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        /* ------------------------------------------------------------------
+         * CONSTANTS & AUTHENTICATION STATE
+         * ------------------------------------------------------------------ */
+        const ADMIN_PASSWORD_REQUIRED = "GAFHEBAT";
+        let isAdministratorAuthenticated = false;
+
+        /* ------------------------------------------------------------------
+         * INDEXEDDB STORAGE ENGINE (High Volume Data Storage)
+         * ------------------------------------------------------------------ */
+        const DB_NAME = 'GADigitalDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'submissions';
+        let db = null;
+
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onupgradeneeded = (event) => {
+                    const dbInstance = event.target.result;
+                    if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
+                        const store = dbInstance.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        store.createIndex('timestamp', 'timestamp', { unique: false });
+                        store.createIndex('type', 'type', { unique: false });
+                        store.createIndex('areaSMU', 'areaSMU', { unique: false });
+                        store.createIndex('status', 'status', { unique: false });
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error("IndexedDB Open Error:", event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        function dbAddRecord(record) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.put(record);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function dbGetAllRecords() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function dbClearAllRecords() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.clear();
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function dbDeleteRecord(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.delete(id);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        /* ------------------------------------------------------------------
+         * SLA HELPER FUNCTIONS (Service Level Agreement Calculation)
+         * ------------------------------------------------------------------ */
+        function calculateSLA(startTimestampStr, completedTimestampStr) {
+            if (!completedTimestampStr) return null;
+
+            const start = new Date(startTimestampStr.replace(' ', 'T'));
+            const end = new Date(completedTimestampStr.replace(' ', 'T'));
+
+            if (isNaN(start) || isNaN(end)) return null;
+
+            const diffMs = end - start;
+            if (diffMs < 0) return '0 Menit';
+
+            const diffMinutes = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays >= 30) {
+                const months = Math.floor(diffDays / 30);
+                return `${months} Bulan`;
+            } else if (diffDays >= 7) {
+                const weeks = Math.floor(diffDays / 7);
+                return `${weeks} Minggu`;
+            } else if (diffDays >= 1) {
+                const remHours = diffHours % 24;
+                return remHours > 0 ? `${diffDays} Hari ${remHours} Jam` : `${diffDays} Hari`;
+            } else if (diffHours >= 1) {
+                const remMins = diffMinutes % 60;
+                return remMins > 0 ? `${diffHours} Jam ${remMins} Mnt` : `${diffHours} Jam`;
+            } else {
+                return `${Math.max(1, diffMinutes)} Menit`;
+            }
+        }
+
+        function calculateAvgSLAMinutes(records) {
+            const completed = records.filter(r => (r.status === 'Completed' || r.completedTimestamp) && r.completedTimestamp);
+            if (completed.length === 0) return null;
+
+            let totalMinutes = 0;
+            completed.forEach(r => {
+                const start = new Date(r.timestamp.replace(' ', 'T'));
+                const end = new Date(r.completedTimestamp.replace(' ', 'T'));
+                if (!isNaN(start) && !isNaN(end)) {
+                    totalMinutes += Math.max(0, (end - start) / (1000 * 60));
+                }
+            });
+
+            const avgMinutes = totalMinutes / completed.length;
+            const avgHours = avgMinutes / 60;
+            const avgDays = avgHours / 24;
+
+            if (avgDays >= 1) return `${avgDays.toFixed(1)} Hari`;
+            if (avgHours >= 1) return `${avgHours.toFixed(1)} Jam`;
+            return `${Math.round(avgMinutes)} Mnt`;
+        }
+
+        /* ------------------------------------------------------------------
+         * INITIAL SEED DATA
+         * ------------------------------------------------------------------ */
+        const sampleSeedData = [
+            {
+                id: 'REQ-1001',
+                joNumber: 'JO-2026-0811',
+                timestamp: '2026-10-14 08:30',
+                dateOnly: '2026-10-14',
+                type: 'Maintenance',
+                departemen: 'HRD & GA',
+                areaSMU: 'SMU 2 (Head Office)',
+                requestor: 'Budi Santoso',
+                picTeknisi: 'Andri P.',
+                lokasi: 'Lantai 2 Ruang HR',
+                deskripsi: 'AC ruangan mengeluarkan suara bising dan kurang dingin.',
+                kategoriKhusus: 'Perbaikan',
+                buktiName: 'ac_rusak.jpg',
+                buktiData: null,
+                status: 'In Progress',
+                completedTimestamp: null
+            },
+            {
+                id: 'REQ-1002',
+                joNumber: '-',
+                timestamp: '2026-10-14 09:15',
+                dateOnly: '2026-10-14',
+                type: 'E-Cleaning',
+                departemen: 'Production',
+                areaSMU: 'SMU 2 (Manufaktur/Plant)',
+                requestor: 'Siti Aminah',
+                picTeknisi: '-',
+                lokasi: 'Kantin Utama Line 3',
+                deskripsi: 'Pembersihan sisa tumpahan cairan non-B3 area lorong.',
+                kategoriKhusus: '-',
+                buktiName: 'tumpahan.jpg',
+                buktiData: null,
+                status: 'Pending',
+                completedTimestamp: null
+            },
+            {
+                id: 'REQ-1003',
+                joNumber: 'JO-2026-0790',
+                timestamp: '2026-10-12 08:00',
+                dateOnly: '2026-10-12',
+                type: 'Industrial Waste',
+                departemen: 'Logistik Warehouse',
+                areaSMU: 'SMU 1',
+                requestor: 'Agus Wijaya',
+                picTeknisi: 'Bambang S.',
+                lokasi: 'Gudang B - Samping Palet',
+                deskripsi: 'Pengangkutan drum limbah oli kemasan pabrik.',
+                noBA: 'BA/GA/2026/10/088',
+                confirmDept: 'Logistik Warehouse',
+                sectionDept: 'Inbound Material',
+                phonePIC: '081298765432',
+                buktiName: 'drum_bekas.jpg',
+                buktiData: null,
+                status: 'Completed',
+                completedTimestamp: '2026-10-13 14:20'
+            }
+        ];
+
+        /* ------------------------------------------------------------------
+         * GLOBAL APP STATE & VIRTUAL PAGINATION
+         * ------------------------------------------------------------------ */
+        let allSubmissions = [];
+        let filteredSubmissions = [];
+        let currentPage = 1;
+        let pageSize = 25;
+        let selectedRecordId = null;
+
+        let trendChartInstance = null;
+        let areaChartInstance = null;
+        let searchDebounceTimer = null;
+
+        // Initialize App & Storage
+        async function initApp() {
+            await openDatabase();
+            allSubmissions = await dbGetAllRecords();
+
+            if (allSubmissions.length === 0) {
+                for (let rec of sampleSeedData) {
+                    await dbAddRecord(rec);
+                }
+                allSubmissions = await dbGetAllRecords();
+            }
+
+            // Check existing session authentication
+            if (sessionStorage.getItem('ga_admin_auth') === 'true') {
+                isAdministratorAuthenticated = true;
+            }
+
+            lucide.createIcons();
+            setupPWA();
+        }
+
+        /* ------------------------------------------------------------------
+         * ADMINISTRATOR LOGIN & AUTHENTICATION HANDLERS
+         * ------------------------------------------------------------------ */
+        function requestAdministratorAccess() {
+            if (isAdministratorAuthenticated) {
+                switchTab('admin-portal');
+            } else {
+                openAdminLoginModal();
+            }
+        }
+
+        function openAdminLoginModal() {
+            const modal = document.getElementById('admin-login-modal');
+            const errBox = document.getElementById('admin-login-error');
+            const passInput = document.getElementById('admin-password-input');
+            
+            errBox.classList.add('hidden');
+            passInput.value = '';
+            modal.classList.remove('hidden');
+            passInput.focus();
+            lucide.createIcons();
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('admin-password-input');
+            const icon = document.getElementById('password-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        function handleAdministratorLogin(event) {
+            event.preventDefault();
+            const inputVal = document.getElementById('admin-password-input').value;
+            const errBox = document.getElementById('admin-login-error');
+
+            if (inputVal === ADMIN_PASSWORD_REQUIRED) {
+                isAdministratorAuthenticated = true;
+                sessionStorage.setItem('ga_admin_auth', 'true');
+                closeAdminLoginModal();
+                showToast("Akses Administrator Berhasil Diverifikasi!");
+                switchTab('admin-portal');
+            } else {
+                errBox.classList.remove('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        function logoutAdministrator() {
+            isAdministratorAuthenticated = false;
+            sessionStorage.removeItem('ga_admin_auth');
+            switchTab('user-portal');
+            showToast("Sesi Administrator telah ditutup.");
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const userPortal = document.getElementById('user-portal');
+            const adminPortal = document.getElementById('admin-portal');
+            const btnUser = document.getElementById('btn-portal-view');
+            const btnAdmin = document.getElementById('btn-admin-view');
+
+            if (tabId === 'user-portal') {
+                userPortal.classList.remove('hidden');
+                adminPortal.classList.add('hidden');
+
+                btnUser.className = "flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500 text-white shadow-sm transition-all";
+                btnAdmin.className = "flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold text-teal-200 hover:text-white transition-all";
+            } else {
+                if (!isAdministratorAuthenticated) {
+                    openAdminLoginModal();
+                    return;
+                }
+
+                userPortal.classList.add('hidden');
+                adminPortal.classList.remove('hidden');
+
+                btnAdmin.className = "flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500 text-white shadow-sm transition-all";
+                btnUser.className = "flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold text-teal-200 hover:text-white transition-all";
+
+                refreshAdministratorData();
+            }
+        }
+
+        /* ------------------------------------------------------------------
+         * MODAL SERVICE FORMS & VALIDATION
+         * ------------------------------------------------------------------ */
+        function openServiceModal(type) {
+            const modal = document.getElementById('service-modal');
+            const header = document.getElementById('modal-header');
+            const title = document.getElementById('modal-title');
+            const subtitle = document.getElementById('modal-subtitle');
+            const formContainer = document.getElementById('form-fields-container');
+            const formTypeInput = document.getElementById('form-type');
+
+            formTypeInput.value = type;
+            formContainer.innerHTML = '';
+
+            if (type === 'maintenance') {
+                header.className = "p-5 bg-cyan-800 text-white flex items-center justify-between";
+                title.innerText = "Form Pengajuan Maintenance";
+                subtitle.innerText = "Laporkan kerusakan fasilitas atau pengadaan barang baru";
+
+                formContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Departemen *</label>
+                        <input type="text" name="departemen" required placeholder="Contoh: HRD / Finance / Production" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Area SMU *</label>
+                        <select name="areaSMU" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-700 focus:outline-none">
+                            <option value="">-- Pilih Area SMU --</option>
+                            <option value="SMU 1">SMU 1</option>
+                            <option value="SMU 2 (Head Office)">SMU 2 (Head Office)</option>
+                            <option value="SMU 2 (Manufaktur/Plant)">SMU 2 (Manufaktur/Plant)</option>
+                            <option value="SMU 3">SMU 3</option>
+                            <option value="Permata Kuningan">Permata Kuningan</option>
+                            <option value="Gawi">Gawi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Requestor *</label>
+                        <input type="text" name="requestor" required placeholder="Nama lengkap Anda" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Lokasi Perbaikan/ Pengadaan/ Pergantian *</label>
+                        <input type="text" name="lokasi" required placeholder="Gedung / Lantai / Ruangan spesifik" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi Request *</label>
+                        <textarea name="deskripsi" rows="3" required placeholder="Jelaskan kendala atau detail barang secara rinci" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-cyan-700 focus:outline-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Perbaikan/ Pengadaan/ Pergantian (Action) *</label>
+                        <div class="flex items-center space-x-4 mt-1 text-xs">
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="radio" name="kategoriKhusus" value="Perbaikan" required class="text-cyan-700 focus:ring-cyan-700">
+                                <span>Perbaikan</span>
+                            </label>
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="radio" name="kategoriKhusus" value="Pengadaan" class="text-cyan-700 focus:ring-cyan-700">
+                                <span>Pengadaan</span>
+                            </label>
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="radio" name="kategoriKhusus" value="Pergantian" class="text-cyan-700 focus:ring-cyan-700">
+                                <span>Pergantian</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Unggah Bukti / Dokumentasi *</label>
+                        <input type="file" name="bukti" accept="image/*" required class="w-full text-xs p-2 border border-slate-300 rounded-xl bg-slate-50">
+                    </div>
+                `;
+            } else if (type === 'cleaning') {
+                header.className = "p-5 bg-emerald-700 text-white flex items-center justify-between";
+                title.innerText = "Form Permintaan E-Cleaning";
+                subtitle.innerText = "Ajukan jadwal pembersihan area kantor";
+
+                formContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Departemen *</label>
+                        <input type="text" name="departemen" required placeholder="Contoh: HRD / Finance / Production" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Area SMU *</label>
+                        <select name="areaSMU" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:outline-none">
+                            <option value="">-- Pilih Area SMU --</option>
+                            <option value="SMU 2 (Head Office)">SMU 2 (Head Office)</option>
+                            <option value="SMU 2 (Manufaktur/Plant)">SMU 2 (Manufaktur/Plant)</option>
+                            <option value="SMU 3">SMU 3</option>
+                            <option value="Permata Kuningan">Permata Kuningan</option>
+                            <option value="Gawi">Gawi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Requestor *</label>
+                        <input type="text" name="requestor" required placeholder="Nama lengkap Anda" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Lokasi Pembersihan *</label>
+                        <input type="text" name="lokasi" required placeholder="Detail area/ruangan yang butuh dibersihkan" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi Pembersihan *</label>
+                        <textarea name="deskripsi" rows="3" required placeholder="Rincikan bagian atau objek yang hendak dibersihkan" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:outline-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Unggah Bukti / Dokumentasi *</label>
+                        <input type="file" name="bukti" accept="image/*" required class="w-full text-xs p-2 border border-slate-300 rounded-xl bg-slate-50">
+                    </div>
+                `;
+            } else if (type === 'waste') {
+                header.className = "p-5 bg-amber-600 text-white flex items-center justify-between";
+                title.innerText = "Form Industrial Waste";
+                subtitle.innerText = "Laporan pengangkutan & penanganan limbah non-domestik";
+
+                formContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Departemen *</label>
+                        <input type="text" name="departemen" required placeholder="Contoh: Production / Maintenance / WH" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Area SMU *</label>
+                        <select name="areaSMU" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                            <option value="">-- Pilih Area SMU --</option>
+                            <option value="SMU 1">SMU 1</option>
+                            <option value="SMU 2 (Head Office)">SMU 2 (Head Office)</option>
+                            <option value="SMU 2 (Manufaktur/Plant)">SMU 2 (Manufaktur/Plant)</option>
+                            <option value="SMU 3">SMU 3</option>
+                            <option value="Permata Kuningan">Permata Kuningan</option>
+                            <option value="Gawi">Gawi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Requestor *</label>
+                        <input type="text" name="requestor" required placeholder="Nama lengkap Anda" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Lokasi Kebersihan *</label>
+                        <input type="text" name="lokasi" required placeholder="Titik pengambilan limbah" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Berita Acara *</label>
+                        <input type="text" name="noBA" required placeholder="Nomor BA resmi limbah" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Departemen Konfirmasi *</label>
+                        <input type="text" name="confirmDept" required placeholder="Departemen Penanggung Jawab" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Section Departemen *</label>
+                        <input type="text" name="sectionDept" required placeholder="Seksi / Divisi spesifik" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Handphone PIC untuk Konfirmasi *</label>
+                        <input type="tel" name="phonePIC" required placeholder="08xxxxxxxxxx" pattern="[0-9]{9,15}" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('service-modal').classList.add('hidden');
+        }
+
+        // Image Compression
+        function compressImageFile(file) {
+            return new Promise((resolve) => {
+                if (!file || !file.type.startsWith('image/')) {
+                    resolve({ fileName: file ? file.name : 'lampiran.jpg', base64: null });
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const maxDim = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxDim) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            }
+                        } else {
+                            if (height > maxDim) {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        resolve({ fileName: file.name, base64: compressedBase64 });
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const formType = document.getElementById('form-type').value;
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const submitBtn = document.getElementById('btn-submit-form');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span>Proses Menyimpan...</span>`;
+
+            const now = new Date();
+            const timeString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const dateOnly = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+            let labelType = "Maintenance";
+            if (formType === 'cleaning') labelType = "E-Cleaning";
+            if (formType === 'waste') labelType = "Industrial Waste";
+
+            const fileInput = form.querySelector('input[type="file"]');
+            const fileObj = fileInput && fileInput.files[0] ? fileInput.files[0] : null;
+            const compressedRes = await compressImageFile(fileObj);
+
+            const newRecord = {
+                id: 'REQ-' + (Date.now().toString().slice(-6)),
+                joNumber: '-',
+                timestamp: timeString,
+                dateOnly: dateOnly,
+                type: labelType,
+                departemen: formData.get('departemen') || '-',
+                areaSMU: formData.get('areaSMU') || '-',
+                requestor: formData.get('requestor') || '-',
+                picTeknisi: '-',
+                lokasi: formData.get('lokasi') || '-',
+                deskripsi: formData.get('deskripsi') || '-',
+                kategoriKhusus: formData.get('kategoriKhusus') || '-',
+                noBA: formData.get('noBA') || '-',
+                confirmDept: formData.get('confirmDept') || '-',
+                sectionDept: formData.get('sectionDept') || '-',
+                phonePIC: formData.get('phonePIC') || '-',
+                buktiName: compressedRes.fileName,
+                buktiData: compressedRes.base64,
+                status: 'Pending',
+                completedTimestamp: null
+            };
+
+            await dbAddRecord(newRecord);
+            allSubmissions = await dbGetAllRecords();
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i><span>Kirim Permintaan</span>`;
+            
+            closeModal();
+            form.reset();
+
+            showToast("Sukses! Request Anda telah berhasil tersimpan di sistem.");
+            lucide.createIcons();
+        }
+
+        /* ------------------------------------------------------------------
+         * ADMIN MANUAL EDIT HANDLERS (JO NUMBER, PIC TEKNISI, COMPLETION TIME)
+         * ------------------------------------------------------------------ */
+        function openJOModal(id) {
+            const item = allSubmissions.find(s => s.id === id);
+            if (!item) return;
+
+            document.getElementById('jo-record-id').value = id;
+            document.getElementById('jo-input-val').value = item.joNumber && item.joNumber !== '-' ? item.joNumber : '';
+            document.getElementById('pic-teknisi-input-val').value = item.picTeknisi && item.picTeknisi !== '-' ? item.picTeknisi : '';
+
+            const compInput = document.getElementById('completion-time-input-val');
+            if (item.completedTimestamp) {
+                // Convert YYYY-MM-DD HH:mm format to YYYY-MM-DDTHH:mm for datetime-local
+                compInput.value = item.completedTimestamp.replace(' ', 'T');
+            } else {
+                compInput.value = '';
+            }
+
+            document.getElementById('jo-modal').classList.remove('hidden');
+            document.getElementById('jo-input-val').focus();
+        }
+
+        function closeJOModal() {
+            document.getElementById('jo-modal').classList.add('hidden');
+        }
+
+        async function saveAdminManualEdits(event) {
+            event.preventDefault();
+            const id = document.getElementById('jo-record-id').value;
+            const joVal = document.getElementById('jo-input-val').value.trim();
+            const picVal = document.getElementById('pic-teknisi-input-val').value.trim();
+            const compVal = document.getElementById('completion-time-input-val').value;
+
+            const item = allSubmissions.find(s => s.id === id);
+            if (item) {
+                item.joNumber = joVal || '-';
+                item.picTeknisi = picVal || '-';
+
+                if (compVal) {
+                    item.completedTimestamp = compVal.replace('T', ' ');
+                    if (item.status === 'Pending' || item.status === 'In Progress') {
+                        item.status = 'Completed';
+                    }
+                } else {
+                    item.completedTimestamp = null;
+                }
+
+                await dbAddRecord(item);
+                closeJOModal();
+                refreshAdministratorData();
+                showToast(`Data manual untuk ID ${id} berhasil diperbarui!`);
+            }
+        }
+
+        /* ------------------------------------------------------------------
+         * HIGH VOLUME ADMINISTRATOR DASHBOARD, PAGINATION & FILTERING
+         * ------------------------------------------------------------------ */
+        function refreshAdministratorData() {
+            applyFilters();
+        }
+
+        function debounceApplyFilters() {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                applyFilters();
+            }, 250);
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
+            const catVal = document.getElementById('filter-category').value;
+            const areaVal = document.getElementById('filter-area').value;
+            const statusVal = document.getElementById('filter-status').value;
+            const startDate = document.getElementById('filter-date-start').value;
+            const endDate = document.getElementById('filter-date-end').value;
+
+            filteredSubmissions = allSubmissions.filter(item => {
+                const matchesSearch = !searchVal || 
+                                      item.requestor.toLowerCase().includes(searchVal) ||
+                                      (item.picTeknisi && item.picTeknisi.toLowerCase().includes(searchVal)) ||
+                                      item.lokasi.toLowerCase().includes(searchVal) ||
+                                      item.id.toLowerCase().includes(searchVal) ||
+                                      (item.joNumber && item.joNumber.toLowerCase().includes(searchVal)) ||
+                                      (item.noBA && item.noBA.toLowerCase().includes(searchVal));
+
+                const matchesCat = catVal === 'ALL' || item.type === catVal;
+                const matchesArea = areaVal === 'ALL' || item.areaSMU === areaVal;
+                const matchesStatus = statusVal === 'ALL' || item.status === statusVal;
+
+                let matchesDate = true;
+                if (startDate) matchesDate = matchesDate && (item.dateOnly >= startDate);
+                if (endDate) matchesDate = matchesDate && (item.dateOnly <= endDate);
+
+                return matchesSearch && matchesCat && matchesArea && matchesStatus && matchesDate;
+            });
+
+            filteredSubmissions.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+
+            currentPage = 1;
+            renderAdminKPI();
+            renderAdminCharts();
+            renderVirtualTable();
+        }
+
+        function renderAdminKPI() {
+            document.getElementById('stat-total').innerText = allSubmissions.length.toLocaleString();
+            document.getElementById('stat-pending').innerText = allSubmissions.filter(s => s.status === 'Pending').length.toLocaleString();
+            document.getElementById('stat-process').innerText = allSubmissions.filter(s => s.status === 'In Progress').length.toLocaleString();
+            document.getElementById('stat-completed').innerText = allSubmissions.filter(s => s.status === 'Completed').length.toLocaleString();
+            document.getElementById('stat-rejected').innerText = allSubmissions.filter(s => s.status === 'Rejected').length.toLocaleString();
+
+            // Hitung Rata-rata SLA
+            const avgSla = calculateAvgSLAMinutes(allSubmissions);
+            document.getElementById('stat-avg-sla').innerText = avgSla ? avgSla : '-';
+        }
+
+        function renderVirtualTable() {
+            const tableBody = document.getElementById('table-body');
+            const total = filteredSubmissions.length;
+            const totalPages = Math.ceil(total / pageSize) || 1;
+
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, total);
+            const pageData = filteredSubmissions.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-400">Tidak ada data laporan ditemukan.</td></tr>`;
+                renderPaginationControls(0, 0, 0, 1);
+                return;
+            }
+
+            tableBody.innerHTML = pageData.map((item) => {
+                let badgeColor = 'bg-sky-100 text-sky-800 border-sky-200';
+                if (item.type === 'E-Cleaning') badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                if (item.type === 'Industrial Waste') badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+
+                let statusBadge = 'bg-amber-50 text-amber-700 border-amber-300';
+                if (item.status === 'In Progress') statusBadge = 'bg-sky-50 text-sky-700 border-sky-300';
+                if (item.status === 'Completed') statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-300';
+                if (item.status === 'Rejected') statusBadge = 'bg-rose-50 text-rose-700 border-rose-300';
+
+                // SLA Calculation
+                const slaDuration = item.status === 'Completed' || item.completedTimestamp ? calculateSLA(item.timestamp, item.completedTimestamp) : null;
+                const hasJO = item.joNumber && item.joNumber !== '-';
+                const hasPIC = item.picTeknisi && item.picTeknisi !== '-';
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
+                        <td class="p-3.5">
+                            <span class="font-bold text-slate-800 block">${item.id}</span>
+                            <span class="text-[10px] text-slate-400">${item.timestamp}</span>
+                        </td>
+                        <td class="p-3.5">
+                            <div class="flex items-center space-x-1">
+                                <span class="font-semibold text-slate-800 ${hasJO ? 'bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200' : 'text-slate-400'}">
+                                    ${hasJO ? item.joNumber : 'Belum Ada JO'}
+                                </span>
+                                <button onclick="openJOModal('${item.id}')" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Edit Admin Data">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full border text-[10px] font-bold ${badgeColor}">${item.type}</span>
+                        </td>
+                        <td class="p-3.5 font-bold text-slate-800">${item.requestor}</td>
+                        <td class="p-3.5 text-slate-600">${item.departemen}</td>
+                        <td class="p-3.5 text-slate-600">${item.areaSMU}</td>
+                        <td class="p-3.5">
+                            <span class="font-semibold ${hasPIC ? 'text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200' : 'text-slate-400'}">
+                                ${hasPIC ? item.picTeknisi : 'Belum Ada PIC'}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-slate-600 max-w-xs truncate">
+                            ${item.lokasi}
+                            ${item.noBA && item.noBA !== '-' ? `<span class="block text-[10px] text-amber-600 font-semibold">BA: ${item.noBA}</span>` : ''}
+                        </td>
+                        <td class="p-3.5">
+                            <div class="space-y-1">
+                                <select onchange="updateRecordStatus('${item.id}', this.value)" class="text-[11px] font-semibold rounded-lg px-2 py-1 border ${statusBadge} focus:outline-none">
+                                    <option value="Pending" ${item.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                    <option value="Completed" ${item.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                                    <option value="Rejected" ${item.status === 'Rejected' ? 'selected' : ''}>Ditolak</option>
+                                </select>
+                                ${slaDuration ? `
+                                    <div class="flex items-center space-x-1 text-[10px] font-medium text-emerald-700 bg-emerald-100/60 px-1.5 py-0.5 rounded border border-emerald-200" title="SLA Durasi Penyelesaian">
+                                        <i data-lucide="timer" class="w-3 h-3 shrink-0"></i>
+                                        <span>SLA: ${slaDuration}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <div class="flex items-center justify-center space-x-1">
+                                <button onclick="openJOModal('${item.id}')" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit Admin">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="viewRecordDetail('${item.id}')" class="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg transition" title="Lihat Detail">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPaginationControls(startIndex + 1, endIndex, total, totalPages);
+            lucide.createIcons();
+        }
+
+        function renderPaginationControls(start, end, total, totalPages) {
+            document.getElementById('pagination-info').innerText = `Menampilkan ${start} - ${end} dari ${total.toLocaleString()} data`;
+            const buttonsContainer = document.getElementById('pagination-buttons');
+
+            let html = `
+                <button onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border bg-white disabled:opacity-40 hover:bg-slate-100">« First</button>
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border bg-white disabled:opacity-40 hover:bg-slate-100">‹ Prev</button>
+                <span class="px-3 py-1 font-bold text-slate-700">hal ${currentPage} / ${totalPages}</span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border bg-white disabled:opacity-40 hover:bg-slate-100">Next ›</button>
+                <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border bg-white disabled:opacity-40 hover:bg-slate-100">Last »</button>
+            `;
+            buttonsContainer.innerHTML = html;
+        }
+
+        function changePage(newPage) {
+            currentPage = newPage;
+            renderVirtualTable();
+        }
+
+        function changePageSize(newSize) {
+            pageSize = parseInt(newSize, 10);
+            currentPage = 1;
+            renderVirtualTable();
+        }
+
+        async function updateRecordStatus(id, newStatus) {
+            const item = allSubmissions.find(s => s.id === id);
+            if (item) {
+                item.status = newStatus;
+                
+                // Otomatis catat waktu selesai saat diubah ke Completed
+                if (newStatus === 'Completed') {
+                    if (!item.completedTimestamp) {
+                        const now = new Date();
+                        item.completedTimestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                    }
+                } else {
+                    item.completedTimestamp = null;
+                }
+
+                await dbAddRecord(item);
+                renderAdminKPI();
+                renderVirtualTable();
+                showToast(`Status ID ${id} diubah ke '${newStatus}'`);
+            }
+        }
+
+        function renderAdminCharts() {
+            const dateMap = {};
+            const areaMap = {};
+
+            allSubmissions.forEach(item => {
+                const d = item.dateOnly || item.timestamp.split(' ')[0];
+                dateMap[d] = (dateMap[d] || 0) + 1;
+
+                const a = item.areaSMU || 'Unknown';
+                areaMap[a] = (areaMap[a] || 0) + 1;
+            });
+
+            // Trend Chart
+            const datesSorted = Object.keys(dateMap).sort().slice(-14);
+            const trendCounts = datesSorted.map(d => dateMap[d]);
+
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            if (trendChartInstance) trendChartInstance.destroy();
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: datesSorted,
+                    datasets: [{
+                        label: 'Volume Request Masuk',
+                        data: trendCounts,
+                        borderColor: '#0f5257',
+                        backgroundColor: 'rgba(15, 82, 87, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Area Doughnut Chart
+            const ctxArea = document.getElementById('areaChart').getContext('2d');
+            if (areaChartInstance) areaChartInstance.destroy();
+            areaChartInstance = new Chart(ctxArea, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(areaMap),
+                    datasets: [{
+                        data: Object.values(areaMap),
+                        backgroundColor: ['#0f5257', '#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+        }
+
+        /* ------------------------------------------------------------------
+         * RECORD DETAIL VIEWER
+         * ------------------------------------------------------------------ */
+        function viewRecordDetail(id) {
+            selectedRecordId = id;
+            const item = allSubmissions.find(s => s.id === id);
+            if (!item) return;
+
+            const slaVal = item.status === 'Completed' || item.completedTimestamp ? calculateSLA(item.timestamp, item.completedTimestamp) : null;
+
+            const modalContent = document.getElementById('detail-modal-content');
+            modalContent.innerHTML = `
+                <div class="p-3 bg-slate-50 rounded-xl space-y-1">
+                    <p><span class="font-bold text-slate-700">ID Laporan:</span> ${item.id}</p>
+                    <p><span class="font-bold text-slate-700">No. JO / Notification:</span> <span class="font-bold text-indigo-700">${item.joNumber || '-'}</span></p>
+                    <p><span class="font-bold text-slate-700">PIC / Teknisi:</span> <span class="font-bold text-teal-700">${item.picTeknisi || '-'}</span></p>
+                    <p><span class="font-bold text-slate-700">Waktu Submitted:</span> ${item.timestamp}</p>
+                    <p><span class="font-bold text-slate-700">Waktu Selesai:</span> ${item.completedTimestamp || '-'}</p>
+                    ${slaVal ? `<p class="text-emerald-700 font-bold"><span class="text-slate-700 font-bold">Durasi Penyelesaian (SLA):</span> ${slaVal}</p>` : ''}
+                    <p><span class="font-bold text-slate-700">Jenis Layanan:</span> ${item.type}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <p><span class="font-bold text-slate-700">Requestor:</span> ${item.requestor}</p>
+                    <p><span class="font-bold text-slate-700">Departemen:</span> ${item.departemen}</p>
+                    <p><span class="font-bold text-slate-700">Area SMU:</span> ${item.areaSMU}</p>
+                    <p><span class="font-bold text-slate-700">Lokasi:</span> ${item.lokasi}</p>
+                </div>
+                ${item.type === 'Maintenance' ? `<p><span class="font-bold text-slate-700">Tindakan Action:</span> ${item.kategoriKhusus}</p>` : ''}
+                ${item.type === 'Industrial Waste' ? `
+                    <div class="border-t pt-2 space-y-1">
+                        <p><span class="font-bold text-slate-700">No. Berita Acara:</span> ${item.noBA}</p>
+                        <p><span class="font-bold text-slate-700">Dept Konfirmasi:</span> ${item.confirmDept} (${item.sectionDept})</p>
+                        <p><span class="font-bold text-slate-700">No. HP PIC:</span> ${item.phonePIC}</p>
+                    </div>
+                ` : ''}
+                <div class="border-t pt-2">
+                    <p class="font-bold text-slate-700 mb-1">Deskripsi/Detail Request:</p>
+                    <p class="p-2.5 bg-slate-100 rounded-lg text-slate-600">${item.deskripsi}</p>
+                </div>
+                <div class="border-t pt-2">
+                    <p class="font-bold text-slate-700 mb-1">Bukti Dokumentasi:</p>
+                    ${item.buktiData ? `
+                        <img src="${item.buktiData}" class="w-full max-h-48 object-cover rounded-xl border border-slate-200 mt-1">
+                    ` : `
+                        <div class="p-3 border border-dashed rounded-lg flex items-center space-x-2 text-slate-500 bg-slate-50">
+                            <i data-lucide="image" class="w-4 h-4 text-teal-600"></i>
+                            <span class="font-medium">${item.buktiName || 'Tidak ada file lampiran'}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+            selectedRecordId = null;
+        }
+
+        async function deleteSingleRecord() {
+            if (!selectedRecordId) return;
+            await dbDeleteRecord(selectedRecordId);
+            allSubmissions = await dbGetAllRecords();
+            closeDetailModal();
+            refreshAdministratorData();
+            showToast("Laporan berhasil dihapus dari database.");
+        }
+
+        /* ------------------------------------------------------------------
+         * BULK DATA GENERATOR SEEDER
+         * ------------------------------------------------------------------ */
+        function triggerBulkDataModal() {
+            document.getElementById('bulk-modal').classList.remove('hidden');
+        }
+
+        function closeBulkModal() {
+            document.getElementById('bulk-modal').classList.add('hidden');
+        }
+
+        async function processBulkGeneration() {
+            const count = parseInt(document.getElementById('bulk-count').value, 10);
+            const btn = document.getElementById('btn-process-bulk');
+            btn.disabled = true;
+            btn.innerHTML = `<span>Menyuntikkan Data...</span>`;
+
+            const departments = ['HRD & GA', 'Production Line 1', 'Production Line 2', 'Logistik WH', 'Finance & Accounting', 'IT Infrastructure', 'EHS & Quality'];
+            const areasSMU = ['SMU 1', 'SMU 2 (Head Office)', 'SMU 2 (Manufaktur/Plant)', 'SMU 3', 'Permata Kuningan', 'Gawi'];
+            const services = ['Maintenance', 'E-Cleaning', 'Industrial Waste'];
+            const names = ['Andi Pratama', 'Budi Santoso', 'Dewi Lestari', 'Eko Purnomo', 'Fani Rahmawati', 'Gita Gutawa', 'Hendra Setiawan'];
+            const teknisiNames = ['Andri P.', 'Bambang S.', 'Cahyo W.', 'Dedi M.', 'Eka R.'];
+            const statuses = ['Pending', 'In Progress', 'Completed', 'Rejected'];
+            const actions = ['Perbaikan', 'Pengadaan', 'Pergantian'];
+
+            for (let i = 0; i < count; i++) {
+                const sType = services[Math.floor(Math.random() * services.length)];
+                const randomArea = areasSMU[Math.floor(Math.random() * areasSMU.length)];
+                const daysAgo = Math.floor(Math.random() * 30);
+                const d = new Date();
+                d.setDate(d.getDate() - daysAgo);
+
+                const timeStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(Math.floor(Math.random()*12)+8).padStart(2,'0')}:15`;
+                const dateOnly = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+                const chosenStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                let compTime = null;
+                if (chosenStatus === 'Completed') {
+                    const durationHours = Math.floor(Math.random() * 72) + 1;
+                    const cd = new Date(d.getTime() + durationHours * 3600 * 1000);
+                    compTime = `${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}-${String(cd.getDate()).padStart(2,'0')} ${String(cd.getHours()).padStart(2,'0')}:30`;
+                }
+
+                const dummy = {
+                    id: 'REQ-SEED-' + Math.floor(100000 + Math.random() * 900000),
+                    joNumber: 'JO-2026-' + Math.floor(1000 + Math.random() * 9000),
+                    timestamp: timeStr,
+                    dateOnly: dateOnly,
+                    type: sType,
+                    departemen: departments[Math.floor(Math.random() * departments.length)],
+                    areaSMU: randomArea,
+                    requestor: names[Math.floor(Math.random() * names.length)],
+                    picTeknisi: teknisiNames[Math.floor(Math.random() * teknisiNames.length)],
+                    lokasi: 'Gedung / Line Area ' + Math.floor(Math.random() * 10 + 1),
+                    deskripsi: 'Permintaan otomatis dari sistem stress-test ' + sType,
+                    kategoriKhusus: sType === 'Maintenance' ? actions[Math.floor(Math.random()*3)] : '-',
+                    noBA: sType === 'Industrial Waste' ? 'BA/GA/2026/0' + Math.floor(Math.random()*900+100) : '-',
+                    confirmDept: 'Safety & GA',
+                    sectionDept: 'Facility Mgmt',
+                    phonePIC: '0812' + Math.floor(10000000 + Math.random() * 90000000),
+                    buktiName: 'bukti_lampiran.jpg',
+                    buktiData: null,
+                    status: chosenStatus,
+                    completedTimestamp: compTime
+                };
+
+                await dbAddRecord(dummy);
+            }
+
+            allSubmissions = await dbGetAllRecords();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="cpu" class="w-4 h-4"></i><span>Mulai Seeding</span>`;
+            closeBulkModal();
+            refreshAdministratorData();
+            showToast(`Sukses menyuntikkan ${count} data laporan dummy ke IndexedDB!`);
+        }
+
+        /* ------------------------------------------------------------------
+         * EXCEL EXPORT (SheetJS)
+         * ------------------------------------------------------------------ */
+        function exportToExcel() {
+            const exportData = filteredSubmissions.map((item, index) => {
+                const slaDur = item.status === 'Completed' || item.completedTimestamp ? calculateSLA(item.timestamp, item.completedTimestamp) : '-';
+                return {
+                    'No': index + 1,
+                    'ID Request': item.id,
+                    'No. JO / Notification': item.joNumber || '-',
+                    'PIC / Teknisi': item.picTeknisi || '-',
+                    'Waktu Submit': item.timestamp,
+                    'Waktu Selesai': item.completedTimestamp || '-',
+                    'SLA Penyelesaian': slaDur || '-',
+                    'Layanan': item.type,
+                    'Nama Requestor': item.requestor,
+                    'Departemen': item.departemen,
+                    'Area SMU': item.areaSMU,
+                    'Lokasi': item.lokasi,
+                    'Deskripsi/Rincian': item.deskripsi,
+                    'Kategori Action (Maint)': item.kategoriKhusus || '-',
+                    'No Berita Acara (Waste)': item.noBA || '-',
+                    'Dept Confirm (Waste)': item.confirmDept || '-',
+                    'Section Dept (Waste)': item.sectionDept || '-',
+                    'No HP PIC (Waste)': item.phonePIC || '-',
+                    'Nama File Bukti': item.buktiName || '-',
+                    'Status': item.status
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan GA Digital");
+
+            XLSX.writeFile(workbook, `GA_Digital_Service_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+            showToast("Export Excel berhasil diunduh!");
+        }
+
+        /* ------------------------------------------------------------------
+         * BACKUP & PURGING
+         * ------------------------------------------------------------------ */
+        function openBackupModal() {
+            document.getElementById('backup-modal').classList.remove('hidden');
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        function exportJSONBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allSubmissions, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `GA_Digital_DB_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Backup JSON berhasil diunduh.");
+        }
+
+        async function purgeAllData() {
+            if (confirm("Apakah Anda yakin ingin menghapus SELURUH data laporan dari IndexedDB? Tindakan ini tidak dapat dibatalkan.")) {
+                await dbClearAllRecords();
+                allSubmissions = [];
+                closeBackupModal();
+                refreshAdministratorData();
+                showToast("Database lokal berhasil dipurge dan dikosongkan.");
+            }
+        }
+
+        /* ------------------------------------------------------------------
+         * UI TOAST NOTIFICATION
+         * ------------------------------------------------------------------ */
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl text-xs flex items-center space-x-3 border border-slate-700 animate-bounce";
+            toast.innerHTML = `
+                <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3500);
+        }
+
+        /* ------------------------------------------------------------------
+         * PWA SERVICE WORKER REGISTRATION
+         * ------------------------------------------------------------------ */
+        function setupPWA() {
+            const manifestData = {
+                "name": "GA Digital Service Portal",
+                "short_name": "GA Digital",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#0f5257",
+                "theme_color": "#0f5257",
+                "icons": [
+                    {
+                        "src": "https://img.icons8.com/color/192/organization.png",
+                        "sizes": "192x192",
+                        "type": "image/png"
+                    },
+                    {
+                        "src": "https://img.icons8.com/color/512/organization.png",
+                        "sizes": "512x512",
+                        "type": "image/png"
+                    }
+                ]
+            };
+
+            const blobManifest = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blobManifest);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestURL;
+            document.head.appendChild(link);
+
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'ga-digital-v1';
+                    self.addEventListener('install', (e) => {
+                        self.skipWaiting();
+                    });
+                    self.addEventListener('activate', (e) => {
+                        e.waitUntil(clients.claim());
+                    });
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(
+                            fetch(e.request).catch(() => caches.match(e.request))
+                        );
+                    });
+                `;
+                const blobSW = new Blob([swCode], { type: 'text/javascript' });
+                const swUrl = URL.createObjectURL(blobSW);
+
+                navigator.serviceWorker.register(swUrl).then(() => {
+                    console.log('GA Digital Service Worker Active.');
+                }).catch((err) => {
+                    console.log('Service Worker setup bypassed:', err);
+                });
+            }
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
